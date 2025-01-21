@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pipeline Control</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            padding: 10px 20px;
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Audio Processing Pipeline</h1>
+        <button id="startPipeline">Start Pipeline</button>
+
+        <div class="status">
+            <h3>Pipeline Status:</h3>
+            <p><strong>Recording:</strong> <span id="recordingStatus">Idle</span></p>
+            <p><strong>Authentication Result:</strong> <span id="authResult">N/A</span></p>
+            <p><strong>Word Detection Result:</strong> <span id="wordResult">N/A</span></p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("startPipeline").addEventListener("click", function () {
+            fetch("/start_pipeline", {
+                method: "POST"
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("recordingStatus").textContent = data.recording_status;
+                document.getElementById("authResult").textContent = data.auth_result;
+                document.getElementById("wordResult").textContent = data.word_result;
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("Failed to start pipeline.");
+            });
+        });
+    </script>
+</body>
+</html>
