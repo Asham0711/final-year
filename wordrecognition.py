@@ -66,5 +66,5 @@ def process_audio_chunks(directory):
 
 # Step 6: Run the pipeline
 if __name__ == "__main__":
-    audio_directory = "C:/Users/MD ASHAM IMAD/Downloads/final zip/"  # Replace with your directory path
+    audio_directory = "C:/Users/MD ASHAM IMAD/OneDrive/Desktop/final zip"  # Replace with your directory path
     process_audio_chunks(audio_directory)

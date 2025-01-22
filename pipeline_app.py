@@ -40,7 +40,7 @@ def authenticate_audio(file_path):
 def detect_words(file_path):
     result = None
     try:
-        process = subprocess.run(["python", "word.py"], text=True, capture_output=True, check=True)
+        process = subprocess.run(["python", "wordrecognition.py"], text=True, capture_output=True, check=True)
         output = process.stdout.strip()
         result = output
     except subprocess.CalledProcessError as e:
