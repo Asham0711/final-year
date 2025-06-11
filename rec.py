@@ -1,50 +1,54 @@
-'''
-RECORDS AUDIO CONTINUOUSLY . TERMINATES MANUALLY
-'''
-
-
 import sounddevice as sd
-from scipy.io.wavfile import write
-import numpy as np
+import soundfile as sf
 import os
-from collections import deque
+import time
 
-# Configuration
-SAMPLE_RATE = 44100  # Sampling rate (44.1 kHz)
-DURATION = 20  # Duration of each recording in seconds
-CHANNELS = 1  # Mono audio
-BUFFER_SIZE = 5  # Number of recordings in the buffer
+class AudioRecorder:
+    def __init__(self, directory, sample_rate=16000, chunk_duration=3):
+        self.directory = directory
+        self.sample_rate = sample_rate
+        self.chunk_duration = chunk_duration  # seconds
+        self.max_chunks = 5
+        self.current_index = 0
+        os.makedirs(self.directory, exist_ok=True)
 
-print(f"Recording {DURATION}-second chunks continuously. Oldest files will be discarded when buffer size exceeds {BUFFER_SIZE}...")
+    def safe_delete_file(self, filepath, retries=3, delay=0.5):
+        for attempt in range(retries):
+            try:
+                if os.path.exists(filepath):
+                    os.remove(filepath)
+                    print(f"Deleted: {os.path.basename(filepath)}")
+                return
+            except PermissionError:
+                print(f"Permission denied while deleting {os.path.basename(filepath)}. Retrying {attempt+1}/{retries}...")
+                time.sleep(delay)
 
-# Circular buffer to hold audio recordings
-audio_buffer = deque(maxlen=BUFFER_SIZE)
-recording_counter = 0
+    def record_chunk(self):
+        filename = os.path.join(self.directory, f"chunk{self.current_index}.wav")
 
-try:
-    while True:
-        recording_counter += 1
-        print(f"Recording chunk {recording_counter}...")
-        audio_data = sd.rec(int(DURATION * SAMPLE_RATE), samplerate=SAMPLE_RATE, channels=CHANNELS, dtype='int16')
-        sd.wait()  # Wait for the recording to finish
+        # Delete the oldest file if more than 5 already exist
+        if self.current_index >= self.max_chunks:
+            delete_index = self.current_index - self.max_chunks
+            old_filename = os.path.join(self.directory, f"chunk{delete_index}.wav")
+            self.safe_delete_file(old_filename)
 
-        # Generate filename for the current chunk
-        chunk_filename = f"chunk_{recording_counter}.wav"
+        print(f"Recording chunk{self.current_index}.wav for {self.chunk_duration} seconds...")
+        audio_data = sd.rec(int(self.sample_rate * self.chunk_duration), samplerate=self.sample_rate, channels=1)
+        sd.wait()
+        sf.write(filename, audio_data, self.sample_rate)
+        print(f"Saved: {os.path.basename(filename)}")
 
-        # Save the recording to a file
-        write(chunk_filename, SAMPLE_RATE, audio_data)
-        print(f"Chunk {recording_counter} saved as '{chunk_filename}'")
+        self.current_index += 1
 
-        # Add the new file to the buffer
-        if len(audio_buffer) == BUFFER_SIZE:
-            # Remove the oldest file from the buffer and delete it from disk
-            oldest_file = audio_buffer.popleft()
-            if os.path.exists(oldest_file):
-                os.remove(oldest_file)
-                print(f"Removed oldest file: '{oldest_file}'")
+    def record_forever(self):
+        print("Recording started... Press Ctrl+C to stop.")
+        try:
+            while True:
+                self.record_chunk()
+        except KeyboardInterrupt:
+            print("Recording stopped.")
 
-        audio_buffer.append(chunk_filename)
-
-except KeyboardInterrupt:
-    print("Recording terminated by user.")
-    print("Remaining files in buffer:", list(audio_buffer))
+if __name__ == "__main__":
+    save_dir = r"C:/Users/MD ASHAM IMAD/OneDrive/Desktop/final zip/chunks"
+    recorder = AudioRecorder(save_dir)
+    recorder.record_forever()
