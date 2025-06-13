@@ -20,7 +20,7 @@ class VoiceAuthenticator:
     def load_dataset(self):
         # List all your voice files and other voice files
         your_voice_files = [
-            f"C:/Users/MD ASHAM IMAD/OneDrive/Desktop/final zip/dataset/neha{i}.wav" for i in range(29)
+            f"C:/Users/MD ASHAM IMAD/OneDrive/Desktop/final zip/dataset/neha{i}.wav" for i in range(28)
         ]
         your_voice_files[0] = "C:/Users/MD ASHAM IMAD/OneDrive/Desktop/final zip/dataset/neha.wav"  # first file doesn't have number
 

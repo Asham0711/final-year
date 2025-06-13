@@ -27,10 +27,10 @@ def stop_rec():
 
 @app.route('/api/get_status', methods=['GET'])
 def get_status():
-    # try:
-    #     auth_output = subprocess.check_output(["python", "auth.py"]).decode("utf-8")
-    # except Exception as e:
-    #     auth_output = f"Auth error: {str(e)}"
+    try:
+        auth_output = subprocess.check_output(["python", "auth.py"]).decode("utf-8")
+    except Exception as e:
+        auth_output = f"Auth error: {str(e)}"
 
     try:
         word_output = subprocess.check_output(["python", "wordrecognition.py"]).decode("utf-8")
@@ -38,7 +38,7 @@ def get_status():
         word_output = f"WordRecognition error: {str(e)}"
 
     return jsonify({
-        # "authResult": auth_output,
+        "authResult": auth_output,
         "wordRecResult": word_output
     })
 
