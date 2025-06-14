@@ -73,15 +73,15 @@ export default function App() {
         console.error("Polling error:", err);
       }
 
-      pollingRef.current = setTimeout(poll, 3000); // 🔁 keep polling
+      pollingRef.current = setTimeout(poll, 3000); 
     };
 
     if (isRecording) {
-      poll(); // 🔥 Start polling only if recording
+      poll(); 
     }
 
     return () => {
-      clearTimeout(pollingRef.current); // 🧹 clean timeout on unmount or isRecording false
+      clearTimeout(pollingRef.current); 
     };
   }, [isRecording]);
 
