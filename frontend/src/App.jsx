@@ -7,6 +7,7 @@ export default function App() {
   const [wordRecResult, setWordRecResult] = useState("");
   const [pulseStatus, setPulseStatus] = useState("");
   const pollingRef = useRef(null);
+  const [emailFlag, setEmailFlag] = useState(false);
 
   const startRecording = async () => {
     try {
@@ -60,11 +61,14 @@ export default function App() {
         setAuthResult("Voice authorised as Neha");
         setWordRecResult(data.wordRecResult);
 
+        if(!emailFlag){
           const gpsRes = await fetch("http://localhost:5000/api/send_location_alert", {
             method: "POST",
           });
           const gpsData = await gpsRes.json();
           toast.success(gpsData.message);
+          setEmailFlag(true);
+        }
       } catch (err) {
         console.error("Polling error:", err);
       }
