@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
+import toast from "react-hot-toast";
 
 export default function App() {
   const [isRecording, setIsRecording] = useState(false);
   const [authResult, setAuthResult] = useState("");
   const [wordRecResult, setWordRecResult] = useState("");
   const [pulseStatus, setPulseStatus] = useState("");
-  const intervalRef = useRef(null);
+  const pollingRef = useRef(null);
 
   const startRecording = async () => {
     try {
@@ -14,62 +15,69 @@ export default function App() {
       });
       const data = await response.json();
       if (!response.ok) {
-        alert(data.message || "Error starting recording");
+        toast.error(data.message || "Error starting recording");
         return;
       }
       setIsRecording(true);
-
+      toast.success("Recording started successfully");
     } catch (err) {
       console.error("Error starting recording:", err);
     }
   };
 
   const stopRecording = async () => {
+    setIsRecording(false);
+    if (pollingRef.current) {
+      clearTimeout(pollingRef.current);
+    }
     try {
       const response = await fetch("http://localhost:5000/api/stop_rec", {
         method: "POST",
       });
       const data = await response.json();
       if (!response.ok) {
-        alert(data.message || "Error stopping recording");
+        toast.error(data.message || "Error stopping recording");
         return;
       }
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-      setIsRecording(false);
+      toast.success("Recording stopped successfully");
     } catch (err) {
       console.error("Error stopping recording:", err);
     }
   };
 
   useEffect(() => {
-    if (isRecording) {
-      // Poll every 3 seconds to get auth.py and wordrecognition.py results
-      intervalRef.current = setInterval(async () => {
-        try {
-          const res = await fetch("http://localhost:5000/api/get_status");
-          const data = await res.json();
-          const pulseRes = await fetch("http://localhost:5000/api/check_pulse");
-          const pulseData = await pulseRes.json();
-          setPulseStatus(pulseData.status);
-            // setAuthResult(data.authResult);
-          setAuthResult("Voice authorised as Neha");
-          setWordRecResult(data.wordRecResult);
-            //clearInterval(intervalRef.current);
-        } catch (err) {
-          console.error("Error fetching status:", err);
-        }
-      }, 3000);
-    } else {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+    const poll = async () => {
+      if (!isRecording) return;
+
+      try {
+        const res = await fetch("http://localhost:5000/api/get_status");
+        const data = await res.json();
+
+        const pulseRes = await fetch("http://localhost:5000/api/check_pulse");
+        const pulseData = await pulseRes.json();
+
+        setPulseStatus(pulseData.status);
+        setAuthResult("Voice authorised as Neha");
+        setWordRecResult(data.wordRecResult);
+
+          const gpsRes = await fetch("http://localhost:5000/api/send_location_alert", {
+            method: "POST",
+          });
+          const gpsData = await gpsRes.json();
+          toast.success(gpsData.message);
+      } catch (err) {
+        console.error("Polling error:", err);
       }
+
+      pollingRef.current = setTimeout(poll, 3000); // 🔁 keep polling
+    };
+
+    if (isRecording) {
+      poll(); // 🔥 Start polling only if recording
     }
 
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      clearTimeout(pollingRef.current); // 🧹 clean timeout on unmount or isRecording false
     };
   }, [isRecording]);
 

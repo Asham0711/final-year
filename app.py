@@ -50,5 +50,13 @@ def check_pulse_api():
     result = check_pulse(simulated_pulse)
     return jsonify({"status": result})
 
+@app.route('/api/send_location_alert', methods=['POST'])
+def send_location_alert():
+    try:
+        output = subprocess.check_output(["python", "gps.py"]).decode("utf-8")
+        return jsonify({"message": "Location alert sent", "output": output}), 200
+    except subprocess.CalledProcessError as e:
+        return jsonify({"message": "Failed to send location alert", "error": str(e)}), 500
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
