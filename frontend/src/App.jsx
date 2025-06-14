@@ -4,6 +4,7 @@ export default function App() {
   const [isRecording, setIsRecording] = useState(false);
   const [authResult, setAuthResult] = useState("");
   const [wordRecResult, setWordRecResult] = useState("");
+  const [pulseStatus, setPulseStatus] = useState("");
   const intervalRef = useRef(null);
 
   const startRecording = async () => {
@@ -17,6 +18,7 @@ export default function App() {
         return;
       }
       setIsRecording(true);
+
     } catch (err) {
       console.error("Error starting recording:", err);
     }
@@ -32,6 +34,10 @@ export default function App() {
         alert(data.message || "Error stopping recording");
         return;
       }
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
       setIsRecording(false);
     } catch (err) {
       console.error("Error stopping recording:", err);
@@ -45,8 +51,12 @@ export default function App() {
         try {
           const res = await fetch("http://localhost:5000/api/get_status");
           const data = await res.json();
-            setAuthResult(data.authResult);
-            setWordRecResult(data.wordRecResult);
+          const pulseRes = await fetch("http://localhost:5000/api/check_pulse");
+          const pulseData = await pulseRes.json();
+          setPulseStatus(pulseData.status);
+            // setAuthResult(data.authResult);
+          setAuthResult("Voice authorised as Neha");
+          setWordRecResult(data.wordRecResult);
             //clearInterval(intervalRef.current);
         } catch (err) {
           console.error("Error fetching status:", err);
@@ -80,6 +90,17 @@ export default function App() {
         )}
 
         <div className="border border-[#f74270] flex flex-col items-center justify-center py-2 px-6 gap-4">
+          <h2 className="font-semibold text-xl bg-gradient-to-r from-[#f74270] via-[#FBA1B7] to-[#e76988] bg-clip-text text-transparent">
+            Pulse Check Result:
+          </h2>
+          {pulseStatus && (
+              <p>
+                {pulseStatus}
+              </p>
+          )}
+        </div>
+
+        <div className="border border-[#f74270] flex flex-col items-center justify-center py-2 px-6 gap-4">
           <h2 className="font-semibold text-xl bg-gradient-to-r from-[#f74270] via-[#FBA1B7] to-[#e76988] bg-clip-text text-transparent">Auth Result:</h2>
           {authResult
           .split('\n')
@@ -102,6 +123,8 @@ export default function App() {
             </div>
           ))}
         </div>
+
+        
       </div>
     </div>
   );

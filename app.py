@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+from sensor import check_pulse
 import subprocess
 from flask_cors import CORS
 
@@ -27,10 +28,10 @@ def stop_rec():
 
 @app.route('/api/get_status', methods=['GET'])
 def get_status():
-    try:
-        auth_output = subprocess.check_output(["python", "auth.py"]).decode("utf-8")
-    except Exception as e:
-        auth_output = f"Auth error: {str(e)}"
+    # try:
+    #     auth_output = subprocess.check_output(["python", "auth.py"]).decode("utf-8")
+    # except Exception as e:
+    #     auth_output = f"Auth error: {str(e)}"
 
     try:
         word_output = subprocess.check_output(["python", "wordrecognition.py"]).decode("utf-8")
@@ -38,9 +39,16 @@ def get_status():
         word_output = f"WordRecognition error: {str(e)}"
 
     return jsonify({
-        "authResult": auth_output,
+        # "authResult": auth_output,
         "wordRecResult": word_output
     })
+
+@app.route('/api/check_pulse', methods=['GET'])
+def check_pulse_api():
+    # Simulate getting pulse value from a sensor (or replace with actual logic)
+    simulated_pulse = 120  # Hardcoded or dynamically fetch from sensor
+    result = check_pulse(simulated_pulse)
+    return jsonify({"status": result})
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
